@@ -1,0 +1,13 @@
+name = "sentryedge"
+main = "src/index.ts"
+compatibility_date = "2025-06-15"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sentryedge"
+database_id = ""
+migrations_dir = "../migrations"
+
+[assets]
+directory = "./public/"

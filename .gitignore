@@ -1,0 +1,7 @@
+.DS_Store
+worker/public
+**/node_modules
+**/.next
+**/build
+**/.env.local
+**/.wrangler
