@@ -34,7 +34,6 @@ SentryEdge is also an ideal foundation for extending with [Cloudflare Zero Trust
     - [5. Unknown/Automatic Format Detection](#5-unknownautomatic-format-detection)
   - [Log Ingestion Examples](#log-ingestion-examples)
   - [⚠️ CORS Warning](#️-cors-warning)
-  - [Troubleshooting](#troubleshooting)
   - [Authentication and Authorization](#authentication-and-authorization)
   - [Contributing](#contributing)
   - [License](#license)
@@ -356,8 +355,6 @@ curl -X POST -H "Content-Type: application/json" \
 
 **Legacy/custom JSON example:**
 
-
-
 **Unknown/Automatic (plain text body) example:**
 ```sh
 curl -X POST --data "Jun 15 12:34:56 myhost myservice: Something happened" \
@@ -372,8 +369,6 @@ curl -X POST --data "$ENCODED" \
 ```
 
 
-
-
 ## ⚠️ CORS Warning
 For development, the worker sets `Access-Control-Allow-Origin: *` to allow cross-origin requests. **In production, you should restrict this header to trusted origins only** to prevent unauthorized access to your API and protect your data. See the `corsHeaders` definition in `worker/src/index.ts` for details and adjust as needed:
 
@@ -383,16 +378,6 @@ const corsHeaders = {
   // ...
 };
 ```
-## Troubleshooting
-**Common issues and solutions:**
-
-- **Body stream already read**: The worker reads the request body only once as text, then attempts to parse as JSON. If you see errors about the body being already read, ensure you are not calling `request.json()` and `request.text()` on the same request.
-- **Cloudflare/proxy redirects**: If you see unexpected 307/308 redirects, check your Cloudflare dashboard and DNS settings for proxy or redirect rules.
-- **Missing imports/exports**: If you see errors like `parseLogLine is not defined`, ensure you have exported the function in `log-parsers.ts` and imported it in `index.ts`.
-- **CORS errors**: If your browser blocks requests, check the `Access-Control-Allow-Origin` header and adjust it for your environment.
-
-If you encounter other issues, please open an issue or pull request.
-
 
 ## Authentication and Authorization
 
